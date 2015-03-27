@@ -2,7 +2,8 @@ var Reflux = require('reflux')
 
 var Actions = require('../actions/actions')
 
-var backend = require('../backend/backend')
+var Backend = require('../backend/backend')
+var PostProcess = require('../backend/post-process.js')
 
 module.exports = Reflux.createStore({
 
@@ -16,11 +17,15 @@ module.exports = Reflux.createStore({
     
     this.onLoading()
 
-    backend.compileJson(args.json, function(err, files) {
+    Backend.compileJson(args.json, function(err, files) {
       if (err) {
         console.log('Error:', err)
         return
       }
+
+      files.forEach(file => {
+        file.data = PostProcess.processClass(file.data, args.parcelable)
+      })
 
       this.onCompileSuccess(files)
     }.bind(this))
